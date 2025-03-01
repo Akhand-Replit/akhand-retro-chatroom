@@ -2,7 +2,7 @@
 
 A temporary chatroom application with a retro, 80s/90s inspired UI/UX design. Built with Streamlit and Supabase, featuring real-time messaging, user management, and nostalgic visual effects like neon colors, pixelated fonts, and VHS glitch animations.
 
-![RetroChat Screenshot](https://via.placeholder.com/800x450.png?text=RetroChat+Screenshot)
+
 
 ## Features
 
