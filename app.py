@@ -41,6 +41,8 @@ if 'last_message_time' not in st.session_state:
     st.session_state.last_message_time = datetime.now().isoformat()
 if 'db_connected' not in st.session_state:
     st.session_state.db_connected = False
+if 'current_message' not in st.session_state:
+    st.session_state.current_message = ""
 
 # Generate a random room code
 def generate_room_code():
@@ -252,6 +254,13 @@ def reset_session_state():
     st.session_state.messages = []
     st.session_state.last_message_time = datetime.now().isoformat()
     st.session_state.db_connected = False
+    st.session_state.current_message = ""
+
+# Callback to handle sending a message
+def on_send_message():
+    if st.session_state.current_message:
+        send_message(st.session_state.room_code, st.session_state.username, st.session_state.current_message)
+        st.session_state.current_message = ""  # Clear the input by updating session state
 
 # Main UI logic
 def main():
@@ -287,7 +296,7 @@ def display_entry_interface():
                 room_code = create_room(room_name, username)
                 if room_code:
                     st.success(f"Room created! Code: {room_code}")
-                    st.rerun()
+                    st.experimental_rerun()
             else:
                 st.warning("Please enter both room name and username", icon="⚠️")
         
@@ -303,7 +312,7 @@ def display_entry_interface():
                 if join_room(room_code, username):
                     st.info("Request sent! Waiting for host approval...")
                     time.sleep(2)  # Give the user a moment to read the message
-                    st.rerun()
+                    st.experimental_rerun()
             else:
                 st.warning("Please enter both room code and username", icon="⚠️")
 
@@ -327,11 +336,11 @@ def display_chat_interface():
             with col2:
                 if st.button("Accept", key=f"accept_{user}", use_container_width=True):
                     approve_user(user)
-                    st.rerun()
+                    st.experimental_rerun()
             with col3:
                 if st.button("Reject", key=f"reject_{user}", use_container_width=True):
                     reject_user(user)
-                    st.rerun()
+                    st.experimental_rerun()
     
     # Display chat messages
     st.subheader("Chat")
@@ -349,26 +358,28 @@ def display_chat_interface():
                     st.info(f"**{msg['username']}**: {msg['message']}")
                     st.caption(f"{datetime.fromisoformat(msg['sent_at']).strftime('%H:%M:%S')}")
     
-    # Message input
-    message = st.text_input("", key="message_input", placeholder="Type your message here...")
+    # Message input - using callback pattern to properly clear the input
+    st.text_input(
+        label="", 
+        key="current_message",
+        placeholder="Type your message here...",
+        value=st.session_state.current_message
+    )
+    
     col1, col2 = st.columns([5, 1])
     
     with col1:
-        if st.button("Send", key="send_btn", use_container_width=True):
-            if message:
-                send_message(st.session_state.room_code, st.session_state.username, message)
-                # Clear the input
-                st.session_state.message_input = ""
-                st.rerun()
+        if st.button("Send", key="send_btn", use_container_width=True, on_click=on_send_message):
+            st.experimental_rerun()
     
     with col2:
         if st.button("Leave", key="leave_btn", use_container_width=True):
             leave_room()
-            st.rerun()
+            st.experimental_rerun()
     
     # Auto-refresh for real-time updates (less aggressive to prevent rate limiting)
     time.sleep(2)
-    st.rerun()
+    st.experimental_rerun()
 
 if __name__ == "__main__":
     try:
