@@ -355,20 +355,21 @@ def load_css():
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
 # Initialize session state variables if they don't exist
-if 'username' not in st.session_state:
-    st.session_state.username = ""
-if 'room_code' not in st.session_state:
-    st.session_state.room_code = ""
-if 'is_host' not in st.session_state:
-    st.session_state.is_host = False
-if 'in_room' not in st.session_state:
-    st.session_state.in_room = False
-if 'pending_users' not in st.session_state:
-    st.session_state.pending_users = []
-if 'messages' not in st.session_state:
-    st.session_state.messages = []
-if 'last_message_time' not in st.session_state:
-    st.session_state.last_message_time = datetime.now().isoformat()
+def init_session_state():
+    if 'username' not in st.session_state:
+        st.session_state.username = ""
+    if 'room_code' not in st.session_state:
+        st.session_state.room_code = ""
+    if 'is_host' not in st.session_state:
+        st.session_state.is_host = False
+    if 'in_room' not in st.session_state:
+        st.session_state.in_room = False
+    if 'pending_users' not in st.session_state:
+        st.session_state.pending_users = []
+    if 'messages' not in st.session_state:
+        st.session_state.messages = []
+    if 'last_message_time' not in st.session_state:
+        st.session_state.last_message_time = datetime.now().isoformat()
 
 # Generate a random room code
 def generate_room_code():
@@ -579,44 +580,6 @@ def reset_session_state():
     st.session_state.messages = []
     st.session_state.last_message_time = datetime.now().isoformat()
 
-# Main UI logic
-def main():
-    # Load CSS
-    load_css()
-    
-    # Add debug information (temporary, can be removed later)
-    if st.query_params.get("debug"):
-        st.sidebar.title("Debug Info")
-        st.sidebar.write("Session State:")
-        st.sidebar.write(st.session_state)
-        
-        try:
-            if "supabase_url" in st.secrets:
-                st.sidebar.success("Supabase URL found in secrets")
-            else:
-                st.sidebar.error("No Supabase URL in secrets")
-                
-            if "supabase_key" in st.secrets:
-                st.sidebar.success("Supabase key found in secrets")
-            else:
-                st.sidebar.error("No Supabase key in secrets")
-        except:
-            st.sidebar.error("Could not access secrets")
-    
-    # Display the retro header
-    st.markdown("""
-    <div class="retro-header">
-        <h1>RetroChat</h1>
-        <div class="scanline"></div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Check if user is in a room
-    if st.session_state.in_room:
-        display_chat_interface()
-    else:
-        display_entry_interface()
-
 # Display the initial entry interface (create/join room)
 def display_entry_interface():
     st.markdown("""
@@ -701,7 +664,7 @@ def display_chat_interface():
     # Display chat messages
     st.markdown('<div class="chat-container">', unsafe_allow_html=True)
     
-    for msg in st.session_state.messages:
+    for idx, msg in enumerate(st.session_state.messages):
         if msg.get('is_system', False):
             st.markdown(f"""
             <div class="message system-message">
@@ -738,10 +701,60 @@ def display_chat_interface():
             st.rerun()
     
     st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Auto-refresh for real-time updates
-    time.sleep(1)
-    st.rerun()
 
+# Main UI logic
+def main():
+    try:
+        # Initialize session state first
+        init_session_state()
+        
+        # Add simple text for debugging (will be visible even if CSS fails)
+        if st.query_params.get("debug"):
+            st.sidebar.title("Debug Info")
+            st.sidebar.write("Session State:")
+            st.sidebar.write(st.session_state)
+            
+            st.sidebar.write("Checking for Supabase credentials:")
+            try:
+                if "supabase_url" in st.secrets:
+                    st.sidebar.success("Supabase URL found in secrets")
+                else:
+                    st.sidebar.error("No Supabase URL in secrets")
+                    
+                if "supabase_key" in st.secrets:
+                    st.sidebar.success("Supabase key found in secrets")
+                else:
+                    st.sidebar.error("No Supabase key in secrets")
+            except Exception as e:
+                st.sidebar.error(f"Could not access secrets: {str(e)}")
+        
+        # Add backup title to ensure something is visible even if CSS fails
+        st.title("RetroChat")
+        
+        # Then load CSS
+        load_css()
+        
+        # Display the retro header
+        st.markdown("""
+        <div class="retro-header">
+            <h1>RetroChat</h1>
+            <div class="scanline"></div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Check if user is in a room
+        if st.session_state.in_room:
+            display_chat_interface()
+        else:
+            display_entry_interface()
+
+    except Exception as e:
+        # Catch any errors and display them
+        st.error(f"An error occurred: {str(e)}")
+        import traceback
+        st.code(traceback.format_exc())
+        st.warning("The app encountered an error. Try refreshing the page.")
+
+# Ensure that the main function runs even if there are CSS issues
 if __name__ == "__main__":
     main()
