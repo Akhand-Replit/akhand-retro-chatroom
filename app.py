@@ -639,7 +639,7 @@ def display_entry_interface():
                 room_code = create_room(room_name, username)
                 if room_code:
                     st.success(f"Room created! Code: {room_code}")
-                    st.experimental_rerun()
+                    st.rerun()
             else:
                 st.warning("Please enter both room name and username", icon="⚠️")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -657,7 +657,7 @@ def display_entry_interface():
                 if join_room(room_code, username):
                     st.info("Request sent! Waiting for host approval...")
                     time.sleep(2)  # Give the user a moment to read the message
-                    st.experimental_rerun()
+                    st.rerun()
             else:
                 st.warning("Please enter both room code and username", icon="⚠️")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -690,11 +690,11 @@ def display_chat_interface():
             with col2:
                 if st.button("Accept", key=f"accept_{user}", use_container_width=True):
                     approve_user(user)
-                    st.experimental_rerun()
+                    st.rerun()
             with col3:
                 if st.button("Reject", key=f"reject_{user}", use_container_width=True):
                     reject_user(user)
-                    st.experimental_rerun()
+                    st.rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
     
@@ -730,18 +730,18 @@ def display_chat_interface():
                 send_message(st.session_state.room_code, st.session_state.username, message)
                 # Clear the input
                 st.session_state.message_input = ""
-                st.experimental_rerun()
+                st.rerun()
     
     with col2:
         if st.button("Leave", key="leave_btn", use_container_width=True):
             leave_room()
-            st.experimental_rerun()
+            st.rerun()
     
     st.markdown('</div>', unsafe_allow_html=True)
     
     # Auto-refresh for real-time updates
     time.sleep(1)
-    st.experimental_rerun()
+    st.rerun()
 
 if __name__ == "__main__":
     main()
