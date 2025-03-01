@@ -1,5 +1,3 @@
-# akhand-retro-chatroom
-
 # RetroChat
 
 A temporary chatroom application with a retro, 80s/90s inspired UI/UX design. Built with Streamlit and Supabase, featuring real-time messaging, user management, and nostalgic visual effects like neon colors, pixelated fonts, and VHS glitch animations.
@@ -40,24 +38,14 @@ A temporary chatroom application with a retro, 80s/90s inspired UI/UX design. Bu
 
 1. Create a new GitHub repository for your project
 2. Add all the files from this project to your repository:
-   - `app.py` (main application file)
-   - `styles.css` (retro styling)
+   - `app.py` (main application file with embedded CSS)
    - `requirements.txt` (dependencies)
+   - `.streamlit/config.toml` (Streamlit configuration)
+   - `supabase_setup.sql` (database setup)
    - `README.md` (this documentation)
-   - `.streamlit/secrets.toml` (create this file, see below)
+   - `.gitignore` (git ignore configuration)
 
-### 4. Configure Secrets
-
-Create a `.streamlit/secrets.toml` file with the following content:
-
-```toml
-supabase_url = "your-supabase-url"
-supabase_key = "your-supabase-anon-key"
-```
-
-**Important**: Add `.streamlit/secrets.toml` to your `.gitignore` file to keep your API keys private.
-
-### 5. Deploy to Streamlit Community Cloud
+### 4. Streamlit Cloud Deployment
 
 1. Log in to [Streamlit Community Cloud](https://streamlit.io/cloud)
 2. Click "New app" and select your GitHub repository
@@ -66,15 +54,6 @@ supabase_key = "your-supabase-anon-key"
    - `supabase_url`: Your Supabase project URL
    - `supabase_key`: Your Supabase anon/public key
 5. Click "Deploy"
-
-## Local Development
-
-To run the app locally:
-
-1. Clone your repository
-2. Create a `.streamlit/secrets.toml` file with your Supabase credentials
-3. Install dependencies: `pip install -r requirements.txt`
-4. Run the app: `streamlit run app.py`
 
 ## Usage Guide
 
@@ -96,17 +75,17 @@ To run the app locally:
 - System notifications will appear when users join or leave
 - Click "Leave" to exit the chatroom
 
-## Project Structure
+## Troubleshooting
 
-- `app.py`: Main application logic, Streamlit UI, and Supabase integration
-- `styles.css`: Custom CSS for retro styling
-- `supabase_setup.sql`: SQL script to set up Supabase tables and policies
-- `requirements.txt`: Project dependencies
-- `.streamlit/secrets.toml`: Configuration file for secrets (not included in repo)
+If you encounter a blank screen after deployment:
+
+1. **Check Supabase Connection**: Add `?debug=true` to your app URL to see connection status
+2. **Verify Secrets**: Ensure that your Supabase URL and key are correctly set in Streamlit Cloud
+3. **Check Logs**: Review deployment logs in Streamlit Cloud dashboard for any errors
 
 ## Customization
 
-- **Modify Colors**: Edit the CSS variables in `styles.css`
+- **Modify Colors**: Edit the CSS variables in the `load_css()` function
 - **Add Sound Effects**: Implement sounds using Streamlit's audio components
 - **New Features**: Extend functionality in `app.py`
 
