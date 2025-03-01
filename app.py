@@ -29,7 +29,7 @@ def init_supabase():
 def load_css():
     try:
         # First try with the original filename
-        with open("styles.css") as f:
+        with open("style.css") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     except FileNotFoundError:
         try:
