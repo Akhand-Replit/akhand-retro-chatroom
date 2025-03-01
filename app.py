@@ -4,17 +4,8 @@ import random
 import string
 from datetime import datetime
 import supabase
-import os
 
-# Page configuration
-st.set_page_config(
-    page_title="RetroChat",
-    page_icon="📺",
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
-
-# Initialize Supabase client with better error handling
+# Initialize Supabase client
 def init_supabase():
     try:
         url = st.secrets["supabase_url"]
@@ -25,48 +16,13 @@ def init_supabase():
         st.info("Please make sure your .streamlit/secrets.toml file is correctly set up with Supabase credentials")
         return None
 
-# Load custom CSS for retro styling
-def load_css():
-    try:
-        # First try with the original filename
-        with open("style.css") as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except FileNotFoundError:
-        try:
-            # Try with the alternative filename
-            with open("styles-css.css") as f:
-                st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-                
-                # Also create a copy with the name the app expects
-                with open("styles.css", "w") as out_file:
-                    out_file.write(f.read())
-        except FileNotFoundError:
-            st.error("CSS file not found. Creating a minimal styles.css file.")
-            with open("styles.css", "w") as f:
-                f.write("""
-                /* Basic retro styling */
-                body {
-                    font-family: monospace;
-                    background-color: #120458;
-                    color: #00ffff;
-                }
-                """)
-            load_css()
-
-# Try to load CSS with better error handling
-try:
-    load_css()
-except Exception as e:
-    st.error(f"Error loading CSS: {str(e)}")
-    st.markdown("""
-    <style>
-    body {
-        font-family: monospace;
-        background-color: #120458;
-        color: #00ffff;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# Page configuration
+st.set_page_config(
+    page_title="RetroChat",
+    page_icon="📺",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
 
 # Initialize session state variables if they don't exist
 if 'username' not in st.session_state:
@@ -299,18 +255,12 @@ def reset_session_state():
 
 # Main UI logic
 def main():
-    # Display the retro header
-    st.markdown("""
-    <div class="retro-header">
-        <h1>RetroChat</h1>
-        <div class="scanline"></div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Display header
+    st.title("RetroChat")
     
     # Display app status - helpful for debugging
     if st.query_params.get("debug") == "true":
         st.sidebar.subheader("Debug Info")
-        st.sidebar.write(f"CSS Loaded: Yes (visible styling)")
         st.sidebar.write(f"Database Connected: {st.session_state.db_connected}")
         st.sidebar.write(f"In Room: {st.session_state.in_room}")
         st.sidebar.write(f"Is Host: {st.session_state.is_host}")
@@ -323,15 +273,9 @@ def main():
 
 # Display the initial entry interface (create/join room)
 def display_entry_interface():
-    st.markdown("""
-    <div class="entry-container">
-        <div class="crt-overlay"></div>
-    """, unsafe_allow_html=True)
-    
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown('<div class="option-box host-box">', unsafe_allow_html=True)
         st.subheader("Host a Chatroom")
         room_name = st.text_input("Chatroom Name", key="host_room_name", 
                                   placeholder="Enter a room name...")
@@ -343,13 +287,11 @@ def display_entry_interface():
                 room_code = create_room(room_name, username)
                 if room_code:
                     st.success(f"Room created! Code: {room_code}")
-                    st.rerun()
+                    st.experimental_rerun()
             else:
                 st.warning("Please enter both room name and username", icon="⚠️")
-        st.markdown('</div>', unsafe_allow_html=True)
         
     with col2:
-        st.markdown('<div class="option-box join-box">', unsafe_allow_html=True)
         st.subheader("Join a Chatroom")
         room_code = st.text_input("Room Code", key="join_room_code", 
                                   placeholder="Enter 5-digit code...")
@@ -361,12 +303,9 @@ def display_entry_interface():
                 if join_room(room_code, username):
                     st.info("Request sent! Waiting for host approval...")
                     time.sleep(2)  # Give the user a moment to read the message
-                    st.rerun()
+                    st.experimental_rerun()
             else:
                 st.warning("Please enter both room code and username", icon="⚠️")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # Display the chat interface
 def display_chat_interface():
@@ -375,56 +314,42 @@ def display_chat_interface():
     get_new_messages()
     
     # Display room info
-    st.markdown(f"""
-    <div class="room-info">
-        <div class="room-code">Room Code: <span class="code-display">{st.session_state.room_code}</span></div>
-        <div class="username-display">Logged in as: <span class="user-highlight">{st.session_state.username}</span></div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.info(f"Room Code: {st.session_state.room_code} | Logged in as: {st.session_state.username}")
     
     # Display pending user requests (for host only)
     if st.session_state.is_host and st.session_state.pending_users:
-        st.markdown('<div class="pending-requests">', unsafe_allow_html=True)
         st.subheader("Pending Requests")
         
         for user in st.session_state.pending_users:
             col1, col2, col3 = st.columns([3, 1, 1])
             with col1:
-                st.markdown(f"<div class='pending-user'>{user}</div>", unsafe_allow_html=True)
+                st.write(user)
             with col2:
                 if st.button("Accept", key=f"accept_{user}", use_container_width=True):
                     approve_user(user)
-                    st.rerun()
+                    st.experimental_rerun()
             with col3:
                 if st.button("Reject", key=f"reject_{user}", use_container_width=True):
                     reject_user(user)
-                    st.rerun()
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+                    st.experimental_rerun()
     
     # Display chat messages
-    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    st.subheader("Chat")
+    chat_container = st.container(height=400)
     
-    for msg in st.session_state.messages:
-        if msg.get('is_system', False):
-            st.markdown(f"""
-            <div class="message system-message">
-                <div class="message-content">{msg['message']}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div class="message {'self-message' if msg['username'] == st.session_state.username else 'other-message'}">
-                <div class="message-sender">{msg['username']}</div>
-                <div class="message-content">{msg['message']}</div>
-                <div class="message-time">{datetime.fromisoformat(msg['sent_at']).strftime('%H:%M:%S')}</div>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+    with chat_container:
+        for msg in st.session_state.messages:
+            if msg.get('is_system', False):
+                st.warning(msg['message'])
+            else:
+                if msg['username'] == st.session_state.username:
+                    st.success(f"**{msg['username']}**: {msg['message']}")
+                    st.caption(f"{datetime.fromisoformat(msg['sent_at']).strftime('%H:%M:%S')}")
+                else:
+                    st.info(f"**{msg['username']}**: {msg['message']}")
+                    st.caption(f"{datetime.fromisoformat(msg['sent_at']).strftime('%H:%M:%S')}")
     
     # Message input
-    st.markdown('<div class="message-input-container">', unsafe_allow_html=True)
     message = st.text_input("", key="message_input", placeholder="Type your message here...")
     col1, col2 = st.columns([5, 1])
     
@@ -434,18 +359,16 @@ def display_chat_interface():
                 send_message(st.session_state.room_code, st.session_state.username, message)
                 # Clear the input
                 st.session_state.message_input = ""
-                st.rerun()
+                st.experimental_rerun()
     
     with col2:
         if st.button("Leave", key="leave_btn", use_container_width=True):
             leave_room()
-            st.rerun()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+            st.experimental_rerun()
     
     # Auto-refresh for real-time updates (less aggressive to prevent rate limiting)
     time.sleep(2)
-    st.rerun()
+    st.experimental_rerun()
 
 if __name__ == "__main__":
     try:
